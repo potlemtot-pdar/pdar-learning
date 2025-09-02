@@ -7,41 +7,43 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using ExpenseTracker.Functions.Models;
 
-public static class ExpenseFunction
+public class ExpenseFunction
 {
-    private static readonly CosmosDbService _cosmosDbService = new CosmosDbService();
+    private readonly ICosmosDbService _cosmosDbService;
+
+    public ExpenseFunction(ICosmosDbService cosmosDbService)
+    {
+        _cosmosDbService = cosmosDbService;
+    }
 
     [FunctionName("GetExpenses")]
-    public static async Task<IActionResult> GetExpenses(
+    public async Task<IActionResult> GetExpenses(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "expenses")] HttpRequest req,
         ILogger log)
     {
         log.LogInformation("Getting all expenses.");
-        var expenses = await _cosmosDbService.GetExpensesAsync();
+        var expenses = await _cosmosDbService.GetAllExpensesAsync();
         return new OkObjectResult(expenses);
     }
 
     [FunctionName("CreateExpense")]
-    public static async Task<IActionResult> CreateExpense(
+    public async Task<IActionResult> CreateExpense(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "expenses")] HttpRequest req,
-        ILogger log)
+        Expense expense)
     {
-        log.LogInformation("Creating a new expense.");
-        string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-        var expense = JsonConvert.DeserializeObject<Expense>(requestBody);
-
         if (expense == null)
         {
-            return new BadRequestObjectResult("Invalid expense data.");
+            return new BadRequestResult();
         }
 
-        await _cosmosDbService.CreateExpenseAsync(expense);
-        return new CreatedResult($"/expenses/{expense.Id}", expense);
+        var createdExpense = await _cosmosDbService.CreateExpenseAsync(expense);
+        return new CreatedResult($"/expenses/{createdExpense.Id}", createdExpense);
     }
 
     [FunctionName("UpdateExpense")]
-    public static async Task<IActionResult> UpdateExpense(
+    public async Task<IActionResult> UpdateExpense(
         [HttpTrigger(AuthorizationLevel.Function, "put", Route = "expenses/{id}")] HttpRequest req,
         string id,
         ILogger log)
@@ -60,7 +62,7 @@ public static class ExpenseFunction
     }
 
     [FunctionName("DeleteExpense")]
-    public static async Task<IActionResult> DeleteExpense(
+    public async Task<IActionResult> DeleteExpense(
         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "expenses/{id}")] HttpRequest req,
         string id,
         ILogger log)

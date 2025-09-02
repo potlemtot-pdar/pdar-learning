@@ -10,6 +10,7 @@ obj/
 
 # VS Code settings
 .vscode/
+.vs/
 
 # Azure Functions local settings
 local.settings.json
