@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "CosmosDBEndpoint": "<Your-CosmosDB-Endpoint>",
+    "CosmosDBKey": "<Your-CosmosDB-Key>",
+    "CosmosDBDatabaseName": "ExpenseTrackerDB",
+    "CosmosDBContainerName": "Expenses"
+  }
+}
